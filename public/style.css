@@ -1,0 +1,37 @@
+html, body, .canvas {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.canvas {
+    border: 1px solid red;
+    width: 1024px;
+    height: 576px;
+    background-size: cover;
+
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 0;
+}
+
+#svg {
+    width: 1024px;
+    height: 576px;
+    border: 1px solid red;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: -1;
+}
+
+#bg {
+    width: 1024px;
+    height: 576px;
+    border: 1px solid red;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: -2;
+}

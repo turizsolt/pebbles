@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pebbles</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="canvas" id="canvas" onclick="create(event);" ondrop="drop(event);">
+
+</div>
+  <div id="bg"></div>
+<svg id="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 576">
+    <defs>
+      <marker id='head' orient="auto"
+        markerWidth='3' markerHeight='4'
+        refX='0.1' refY='2'>
+        <!-- triangle pointing right (+x) -->
+        <path d='M0,0 V4 L2,2 Z' fill="cyan"/>
+      </marker>
+    </defs>
+
+    <g id="g"></g>
+    
+    </svg>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/main.js"></script>
+</body>
+</html>
