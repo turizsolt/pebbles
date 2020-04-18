@@ -1,4 +1,3 @@
-const size = 20;
 const socket = io();
 
 let rot = 0;
@@ -20,7 +19,13 @@ function create(event) {
   console.log('create', event.pageX, event.pageY);
   id = (Math.random() * 9000000) | (0 + 1000000);
   createPebble(id, event.pageX, event.pageY);
-  socket.emit('create', { id: id, x: rotX(event.pageX), y: rotY(event.pageY) });
+  socket.emit('create', {
+    id: id,
+    x: rotX(event.pageX),
+    y: rotY(event.pageY),
+    w: 20,
+    h: 20
+  });
 }
 
 function getById(id) {
@@ -52,14 +57,14 @@ function drop(event) {
   }
 }
 
-function createPebble(id, x, y, backURL) {
+function createPebble(id, x, y, w, h, backURL) {
   const elem = document.createElement('div');
-  elem.style.width = `${size}px`;
-  elem.style.height = `${size}px`;
+  elem.style.width = `${w}px`;
+  elem.style.height = `${h}px`;
   elem.style.position = 'absolute';
-  elem.style.borderRadius = `${size / 2}px`;
-  elem.style.left = `${x - size / 2}px`;
-  elem.style.top = `${y - size / 2}px`;
+  elem.style.borderRadius = `50%`;
+  elem.style.left = `${x - w / 2}px`;
+  elem.style.top = `${y - h / 2}px`;
   if (backURL) elem.style.backgroundImage = `url(${backURL})`;
   else elem.style.backgroundColor = 'red';
   elem.draggable = true;
@@ -76,13 +81,16 @@ function createPebble(id, x, y, backURL) {
 function movePebble(id, x, y) {
   const elem = getById(id);
   if (!elem) return;
-  const oldX = elem.style.left.split('p')[0] - -size / 2;
-  const oldY = elem.style.top.split('p')[0] - -size / 2;
+  const w = elem.style.width.split('p')[0];
+  const h = elem.style.height.split('p')[0];
+  console.log('wh', w, h);
+  const oldX = elem.style.left.split('p')[0] - 1 * (-w / 2);
+  const oldY = elem.style.top.split('p')[0] - 1 * (-h / 2);
   const newX = x;
   const newY = y;
 
-  elem.style.left = `${x - size / 2}px`;
-  elem.style.top = `${y - size / 2}px`;
+  elem.style.left = `${x - w / 2}px`;
+  elem.style.top = `${y - h / 2}px`;
 
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   path.setAttributeNS(null, 'marker-end', 'url(#head)');
@@ -101,7 +109,14 @@ function table(backURL) {
 socket.on('created', data => {
   console.log('created back', data);
   if (!getById(data.id))
-    createPebble(data.id, rotX(data.x), rotY(data.y), data.backURL);
+    createPebble(
+      data.id,
+      rotX(data.x),
+      rotY(data.y),
+      data.w,
+      data.h,
+      data.backURL
+    );
 });
 socket.on('moved', data => {
   console.log('moved back', data);
@@ -141,32 +156,38 @@ document.addEventListener(
         var contents = event.target.result;
         console.log(contents);
 
-        if (contents.length < 1000) {
-          id = (Math.random() * 9000000) | (0 + 1000000);
-          createPebble(
-            id,
-            baseX + (j % 8) * 25,
-            baseY + Math.floor(j / 8) * 25,
-            contents
-          );
-          socket.emit('create', {
-            id: id,
-            x: rotX(baseX + (j % 8) * 25),
-            y: rotY(baseY + Math.floor(j / 8) * 25),
-            backURL: contents
-          });
-          j++;
-        } else {
-          console.log('krukkk');
-          table(contents);
-          socket.emit('table', { backURL: contents });
-        }
+        const img = document.createElement('img');
+        img.src = contents;
+        document.getElementById('temp').append(img);
+        console.log('natural', img.naturalHeight, img.naturalWidth);
+        img.addEventListener('load', () => {
+          console.log('natural loaded', img.naturalHeight, img.naturalWidth);
 
-        try {
-          // todo
-        } catch {
-          console.error('Not proper JSON, hey!');
-        }
+          if (img.naturalWidth < 100) {
+            id = (Math.random() * 9000000) | (0 + 1000000);
+            createPebble(
+              id,
+              baseX + (j % 8) * 25,
+              baseY + Math.floor(j / 8) * 25,
+              img.naturalWidth,
+              img.naturalHeight,
+              contents
+            );
+            socket.emit('create', {
+              id: id,
+              x: rotX(baseX + (j % 8) * 25),
+              y: rotY(baseY + Math.floor(j / 8) * 25),
+              w: img.naturalWidth,
+              h: img.naturalHeight,
+              backURL: contents
+            });
+            j++;
+          } else {
+            console.log('krukkk');
+            table(contents);
+            socket.emit('table', { backURL: contents });
+          }
+        });
       };
 
       reader.onerror = function(event) {
@@ -185,13 +206,15 @@ function sendAllPebles() {
   const children = document.getElementById('canvas').children;
   for (let i = 0; i < children.length; i++) {
     const elem = children[i];
-    const x = elem.style.left.split('p')[0] - -size / 2;
-    const y = elem.style.top.split('p')[0] - -size / 2;
+    const w = elem.style.width.split('p')[0];
+    const h = elem.style.height.split('p')[0];
+    const x = elem.style.left.split('p')[0] - -w / 2;
+    const y = elem.style.top.split('p')[0] - -h / 2;
     const id = elem.dataset.id;
     const backURL = elem.style.backgroundImage.slice(
       4,
       elem.style.backgroundImage.length - 1
     );
-    socket.emit('create', { x: rotX(x), y: rotY(y), id, backURL });
+    socket.emit('create', { x: rotX(x), y: rotY(y), w, h, id, backURL });
   }
 }

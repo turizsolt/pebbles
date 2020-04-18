@@ -35,3 +35,7 @@ html, body, .canvas {
     top: 0;
     z-index: -2;
 }
+
+#temp {
+    visibility: hidden;
+}
